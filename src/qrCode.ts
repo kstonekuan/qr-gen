@@ -71,7 +71,7 @@ function addIconToQRCode(
   iconSrc: string,
   transparentBg = false,
   logoSizeRatio = 0.2,
-  borderSize = 0,
+  borderSizePercentage = 0, // Renamed from borderSize
 ): Promise<void> {
   return new Promise((resolve) => {
     const ctx = canvas.getContext('2d');
@@ -87,19 +87,23 @@ function addIconToQRCode(
       const iconX = (canvas.width - iconSize) / 2;
       const iconY = (canvas.height - iconSize) / 2;
 
+      // Calculate actual border size in pixels
+      const borderSizeInPixels = (iconSize * borderSizePercentage) / 100;
+
       // Only add background if not using transparent background
-      if (!transparentBg && borderSize > 0) {
+      if (!transparentBg && borderSizeInPixels > 0) {
         ctx.save();
 
-        // Fixed border radius for consistent appearance
-        const borderRadius = Math.min(borderSize * 0.5, 4);
+        // Dynamic border radius, proportional to border size
+        // Max radius can be, for example, 20% of borderSizeInPixels or a portion of iconSize
+        const borderRadius = Math.min(borderSizeInPixels * 0.5, iconSize * 0.1, 8); // Capped at 8px max for very large icons/borders
         ctx.fillStyle = 'white';
         ctx.beginPath();
         ctx.roundRect(
-          iconX - borderSize,
-          iconY - borderSize,
-          iconSize + borderSize * 2,
-          iconSize + borderSize * 2,
+          iconX - borderSizeInPixels,
+          iconY - borderSizeInPixels,
+          iconSize + borderSizeInPixels * 2,
+          iconSize + borderSizeInPixels * 2,
           borderRadius,
         );
         ctx.fill();
