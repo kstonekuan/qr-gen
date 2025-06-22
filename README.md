@@ -6,7 +6,14 @@ A modern, open-source QR code generator built with TypeScript and Tailwind CSS. 
 
 - **QR Code Generation**: Create QR codes for any text or URL
 - **Custom Icons**: Upload your own icon to place in the center of the QR code
-- **AI Icon Generation**: Generate icons using natural language descriptions via Gemini 2.5 Flash with structured output
+- **AI Icon Generation**: Generate icons using natural language descriptions via Gemini 2.5 Flash
+- **Customizable System Prompt**: Edit the AI prompt directly in the UI for custom icon generation behavior
+- **QR Code Validation**: Automatically validates QR codes remain scannable after adding icons using jsQR
+- **Icon Settings**:
+  - Adjustable icon size (5-40% of QR code)
+  - Optional white border (0-10px) for better contrast
+  - Transparent background support for PNG logos
+- **Keyboard Shortcuts**: Press Enter to generate icons or QR codes
 - **Rate Limiting**: Built-in rate limiting (60 requests per hour) for API usage
 - **Modern Tech Stack**: Built with TypeScript, Tailwind CSS, and Vite
 - **Responsive Design**: Works seamlessly on desktop and mobile devices
@@ -15,7 +22,7 @@ A modern, open-source QR code generator built with TypeScript and Tailwind CSS. 
 
 ## Live Demo
 
-Visit the live demo at: [https://kstonekuan.github.io/qr-gen](https://yourusername.github.io/qr-gen)
+Visit the live demo at: [https://kstonekuan.github.io/qr-gen](https://kstonekuan.github.io/qr-gen)
 
 ## Quick Start
 
@@ -23,7 +30,7 @@ Visit the live demo at: [https://kstonekuan.github.io/qr-gen](https://youruserna
 
 1. Clone this repository:
 ```bash
-git clone https://github.com/yourusername/qr-gen.git
+git clone https://github.com/kstonekuan/qr-gen.git
 cd qr-gen
 ```
 
@@ -53,57 +60,16 @@ The built files will be in the `dist` directory.
 
 ## Deployment on GitHub Pages
 
-### Option 1: Deploy from `dist` folder
+This project uses GitHub Actions for automatic deployment:
 
-1. Build the project:
-   ```bash
-   pnpm run build
-   ```
+1. Push your changes to the `main` branch
+2. GitHub Actions will automatically build and deploy to GitHub Pages
 
-2. Push the `dist` folder to GitHub
-
-3. Go to Settings → Pages
-
-4. Select "Deploy from a branch"
-
-5. Choose "main" branch and "/dist" folder
-
-6. Your site will be available at `https://yourusername.github.io/qr-gen`
-
-### Option 2: Use GitHub Actions (Recommended)
-
-Create `.github/workflows/deploy.yml`:
-
-```yaml
-name: Deploy to GitHub Pages
-
-on:
-  push:
-    branches: [ main ]
-
-jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 8
-          
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18
-          cache: 'pnpm'
-          
-      - run: pnpm install
-      - run: pnpm run build
-      
-      - uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
-```
+To set up GitHub Pages:
+1. Go to Settings → Pages
+2. Under "Source", select "Deploy from a branch"
+3. Choose "gh-pages" branch and "/" (root) folder
+4. Save the settings
 
 ## Usage
 
@@ -121,7 +87,8 @@ jobs:
 2. Choose an image file from your device
 3. Adjust logo size (15-25% recommended for best scanning)
 4. Optionally enable transparent background for PNG logos
-5. Generate your QR code - the icon will be automatically centered
+5. Optionally adjust border size (0-10px) for better contrast
+6. Generate your QR code - the icon will be automatically centered
 
 #### AI Generation Method:
 1. Click the "Generate with AI" tab
@@ -138,7 +105,8 @@ jobs:
 - **Tailwind CSS**: Utility-first CSS framework
 - **Vite**: Fast build tool and dev server
 - **QRCode**: For QR code generation
-- **Google GenAI SDK**: Official Google AI SDK for image generation
+- **Google GenAI SDK**: Official Google AI SDK for icon generation
+- **jsQR**: For QR code validation
 - **HTML5 Canvas**: For QR code rendering and icon overlay
 
 ### API Rate Limiting
@@ -179,6 +147,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - [qrcode](https://github.com/soldair/node-qrcode) for QR code generation
 - [Google Gemini](https://deepmind.google/technologies/gemini/) for AI capabilities
+- [jsQR](https://github.com/cozmo/jsQR) for QR code validation
 - [Tailwind CSS](https://tailwindcss.com/) for styling
 - [Vite](https://vitejs.dev/) for build tooling
 
@@ -203,3 +172,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Icon not appearing in QR code?**
 - Try a smaller icon or different format
 - Ensure the image loads correctly in preview
+
+**QR code validation warning?**
+- Reduce the icon size percentage
+- Enable the white border for better contrast
+- Some complex QR codes may be harder to validate

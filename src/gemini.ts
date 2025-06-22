@@ -2,10 +2,9 @@ import { GoogleGenAI, Type } from '@google/genai';
 import { DEFAULT_GEMINI_PROMPT, GEMINI_PROMPT_STORAGE_KEY } from './constants';
 
 interface IconResponse {
-  shape: string;
-  color: string;
-  label: string;
-  svgPath?: string;
+  svgPath: string;
+  color?: string;
+  viewBox?: string;
 }
 
 export async function generateImageWithGemini(apiKey: string, prompt: string): Promise<string> {
@@ -27,27 +26,22 @@ export async function generateImageWithGemini(apiKey: string, prompt: string): P
         responseSchema: {
           type: Type.OBJECT,
           properties: {
-            shape: {
+            svgPath: {
               type: Type.STRING,
-              enum: ['circle', 'square', 'triangle', 'rounded'],
-              description: 'The shape of the icon container',
+              description: 'SVG path data for the icon',
             },
             color: {
               type: Type.STRING,
-              description: 'A valid CSS color for the icon (e.g., #FF0000, blue, rgb(0,128,255))',
+              description: 'Color for the icon (hex or CSS color)',
+              nullable: true,
             },
-            label: {
+            viewBox: {
               type: Type.STRING,
-              description: 'A 1-3 character abbreviation for the icon',
-            },
-            svgPath: {
-              type: Type.STRING,
-              description: 'Optional custom SVG path data for more complex icons',
+              description: 'SVG viewBox dimensions',
               nullable: true,
             },
           },
-          required: ['shape', 'color', 'label'],
-          propertyOrdering: ['shape', 'color', 'label', 'svgPath'],
+          required: ['svgPath'],
         },
       },
     });
@@ -58,8 +52,8 @@ export async function generateImageWithGemini(apiKey: string, prompt: string): P
     }
     const iconData: IconResponse = JSON.parse(responseText);
 
-    if (!iconData.shape || !iconData.color || !iconData.label) {
-      throw new Error('Invalid response: missing required fields');
+    if (!iconData.svgPath) {
+      throw new Error('Invalid response: missing SVG path');
     }
 
     return createSVGIcon(iconData);
@@ -71,36 +65,23 @@ export async function generateImageWithGemini(apiKey: string, prompt: string): P
 
 function createSVGIcon(data: IconResponse): string {
   const size = 200;
-  let svgContent = '';
+  const viewBox = data.viewBox || '0 0 24 24';
+  const color = data.color || '#000000';
 
-  // Use custom SVG path if provided, otherwise use default shapes
-  if (data.svgPath) {
-    svgContent = `<path d="${data.svgPath}" fill="${data.color}" transform="translate(${size / 2}, ${size / 2}) scale(${size / 400})"/>`;
-  } else {
-    switch (data.shape.toLowerCase()) {
-      case 'circle':
-        svgContent = `<circle cx="${size / 2}" cy="${size / 2}" r="${size / 3}" fill="${data.color}"/>`;
-        break;
-      case 'square':
-        svgContent = `<rect x="${size / 4}" y="${size / 4}" width="${size / 2}" height="${size / 2}" fill="${data.color}"/>`;
-        break;
-      case 'triangle':
-        svgContent = `<polygon points="${size / 2},${size / 4} ${size / 4},${(size * 3) / 4} ${(size * 3) / 4},${(size * 3) / 4}" fill="${data.color}"/>`;
-        break;
-      case 'rounded':
-        svgContent = `<rect x="${size / 4}" y="${size / 4}" width="${size / 2}" height="${size / 2}" rx="10" fill="${data.color}"/>`;
-        break;
-      default:
-        throw new Error(`Invalid shape: ${data.shape}`);
-    }
-  }
+  // Parse viewBox to get original dimensions
+  const viewBoxParts = viewBox.split(' ');
+  const originalWidth = Number.parseFloat(viewBoxParts[2]) - Number.parseFloat(viewBoxParts[0]);
+  const originalHeight = Number.parseFloat(viewBoxParts[3]) - Number.parseFloat(viewBoxParts[1]);
+
+  // Calculate scale to fit in our size
+  const scale = Math.min(size / originalWidth, size / originalHeight) * 0.8; // 0.8 for padding
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-    ${svgContent}
-    <text x="${size / 2}" y="${size / 2}" text-anchor="middle" dominant-baseline="middle" 
-          fill="white" font-family="Arial, sans-serif" font-size="${size / 10}" font-weight="bold">
-        ${data.label.substring(0, 3).toUpperCase()}
-    </text>
+    <g transform="translate(${size / 2}, ${size / 2})">
+      <g transform="scale(${scale}) translate(${-originalWidth / 2}, ${-originalHeight / 2})">
+        <path d="${data.svgPath}" fill="${color}"/>
+      </g>
+    </g>
 </svg>`;
 
   // Convert SVG to data URL
