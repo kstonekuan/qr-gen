@@ -6,6 +6,7 @@ export const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour in milliseconds
 // Storage keys
 export const API_KEY_STORAGE_KEY = 'gemini_api_key';
 export const GEMINI_PROMPT_STORAGE_KEY = 'gemini_system_prompt';
+export const GEMINI_MODEL_STORAGE_KEY = 'gemini_model';
 
 // UI constants
 export const MIN_QR_SIZE = 200;

@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from '@google/genai';
-import { DEFAULT_GEMINI_PROMPT, GEMINI_PROMPT_STORAGE_KEY } from './constants';
+import { DEFAULT_GEMINI_PROMPT, GEMINI_PROMPT_STORAGE_KEY, GEMINI_MODEL_STORAGE_KEY } from './constants';
 
 interface IconResponse {
   svgPath: string;
@@ -14,12 +14,16 @@ export async function generateImageWithGemini(apiKey: string, prompt: string): P
   const storedPrompt = localStorage.getItem(GEMINI_PROMPT_STORAGE_KEY);
   const systemPrompt = storedPrompt || DEFAULT_GEMINI_PROMPT;
 
+  // Get custom model or use default
+  const storedModel = localStorage.getItem(GEMINI_MODEL_STORAGE_KEY);
+  const model = storedModel || 'gemini-2.5-flash';
+
   // Replace {prompt} placeholder with actual user prompt
   const fullPrompt = systemPrompt.replace('{prompt}', prompt);
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model,
       contents: fullPrompt,
       config: {
         responseMimeType: 'application/json',

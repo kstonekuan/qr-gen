@@ -3,6 +3,7 @@ import {
   DEFAULT_GEMINI_PROMPT,
   DEFAULT_QR_SIZE,
   GEMINI_PROMPT_STORAGE_KEY,
+  GEMINI_MODEL_STORAGE_KEY,
 } from './constants';
 import { generateImageWithGemini } from './gemini';
 import { showModal } from './modal';
@@ -19,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initializeEventListeners();
   loadApiKey();
   loadSystemPrompt();
+  loadModel();
   updateRateLimitDisplay();
 });
 
@@ -131,6 +133,18 @@ function initializeEventListeners(): void {
   }
   if (resetPromptButton) {
     resetPromptButton.addEventListener('click', resetSystemPrompt);
+  }
+
+  // Model management
+  const modelInput = document.getElementById('gemini-model') as HTMLInputElement;
+  if (modelInput) {
+    modelInput.addEventListener('change', (e) => {
+      const target = e.target as HTMLInputElement;
+      const model = target.value.trim();
+      if (model) {
+        localStorage.setItem(GEMINI_MODEL_STORAGE_KEY, model);
+      }
+    });
   }
 
   // Size slider
@@ -419,4 +433,14 @@ function resetSystemPrompt(): void {
     title: 'Success',
     message: 'System prompt reset to default.',
   });
+}
+
+// Model management
+function loadModel(): void {
+  const savedModel = localStorage.getItem(GEMINI_MODEL_STORAGE_KEY);
+  const modelInput = document.getElementById('gemini-model') as HTMLInputElement;
+  
+  if (modelInput) {
+    modelInput.value = savedModel || 'gemini-2.5-flash';
+  }
 }
