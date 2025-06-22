@@ -169,7 +169,7 @@ function initializeEventListeners(): void {
   if (borderSlider && borderDisplay) {
     borderSlider.addEventListener('input', (e) => {
       const target = e.target as HTMLInputElement;
-      borderDisplay.textContent = `${target.value}px`;
+      borderDisplay.textContent = `${target.value}%`; // Changed to %
     });
   }
 
