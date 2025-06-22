@@ -34,8 +34,7 @@ function initializeTabs(): void {
 
       // Check if generate tab is clicked without API key
       if (targetTab === 'generate') {
-        const apiKey =
-          localStorage.getItem(API_KEY_STORAGE_KEY) || import.meta.env.VITE_GEMINI_API_KEY;
+        const apiKey = localStorage.getItem(API_KEY_STORAGE_KEY);
         if (!apiKey) {
           showModal({
             type: 'warning',
@@ -276,7 +275,7 @@ async function generateAIIcon(): Promise<void> {
     return;
   }
 
-  const apiKey = localStorage.getItem(API_KEY_STORAGE_KEY) || import.meta.env.VITE_GEMINI_API_KEY;
+  const apiKey = localStorage.getItem(API_KEY_STORAGE_KEY);
   if (!apiKey) {
     showModal({
       type: 'warning',
@@ -336,8 +335,7 @@ function saveApiKey(): void {
 }
 
 function loadApiKey(): void {
-  const savedKey =
-    localStorage.getItem(API_KEY_STORAGE_KEY) || import.meta.env.VITE_GEMINI_API_KEY || '';
+  const savedKey = localStorage.getItem(API_KEY_STORAGE_KEY) || '';
   const apiKeyInput = document.getElementById('api-key') as HTMLInputElement;
 
   if (savedKey && apiKeyInput) {

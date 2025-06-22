@@ -46,9 +46,7 @@ pnpm dev
 
 4. To use AI icon generation:
    - Get a free API key from [Google AI Studio](https://aistudio.google.com/apikey)
-   - Either:
-     - Enter the key in the app's Gemini API Settings section (stored in localStorage)
-     - Or create a `.env` file with `VITE_GEMINI_API_KEY=your_key_here`
+   - Enter the key in the app's Gemini API Settings section (stored in localStorage)
 
 ### Production Build
 
