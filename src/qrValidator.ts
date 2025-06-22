@@ -6,7 +6,7 @@ export async function validateQRCode(canvas: HTMLCanvasElement): Promise<{
   error?: string;
 }> {
   try {
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (!ctx) {
       return { isValid: false, error: 'Could not get canvas context' };
     }

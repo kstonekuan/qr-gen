@@ -32,7 +32,7 @@ export async function generateQRCode(
         Number.parseInt((document.getElementById('logo-size') as HTMLInputElement)?.value || '20') /
         100;
       const borderSize = Number.parseInt(
-        (document.getElementById('border-size') as HTMLInputElement)?.value || '0',
+        (document.getElementById('border-size') as HTMLInputElement)?.value || '5',
       );
       await addIconToQRCode(canvas, iconSrc, transparentBg, logoSize, borderSize);
 
@@ -71,7 +71,7 @@ function addIconToQRCode(
   iconSrc: string,
   transparentBg = false,
   logoSizeRatio = 0.2,
-  borderSizePercentage = 0, // Renamed from borderSize
+  borderSizePercentage = 5, // Renamed from borderSize
 ): Promise<void> {
   return new Promise((resolve) => {
     const ctx = canvas.getContext('2d');
