@@ -15,14 +15,31 @@ export function showModal(options: ModalOptions): void {
   }
 
   const modal = document.createElement('div');
-  modal.className =
-    'fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 animate-fade-in';
+  modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in';
+  modal.style.backgroundColor = 'rgba(45, 42, 38, 0.4)';
+  modal.style.backdropFilter = 'blur(4px)';
 
   const typeStyles = {
-    info: 'bg-blue-100 text-blue-800 border-blue-200',
-    success: 'bg-green-100 text-green-800 border-green-200',
-    warning: 'bg-amber-100 text-amber-800 border-amber-200',
-    error: 'bg-red-100 text-red-800 border-red-200',
+    info: {
+      background: 'hsl(210 80% 96%)',
+      color: 'hsl(210 70% 35%)',
+      border: 'hsl(210 70% 85%)',
+    },
+    success: {
+      background: 'hsl(153 50% 94%)',
+      color: 'hsl(153 50% 30%)',
+      border: 'hsl(153 40% 80%)',
+    },
+    warning: {
+      background: 'hsl(40 90% 94%)',
+      color: 'hsl(30 80% 30%)',
+      border: 'hsl(40 80% 80%)',
+    },
+    error: {
+      background: 'hsl(0 70% 95%)',
+      color: 'hsl(0 60% 35%)',
+      border: 'hsl(0 60% 85%)',
+    },
   };
 
   const iconSvg = {
@@ -37,21 +54,22 @@ export function showModal(options: ModalOptions): void {
 
   const type = options.type || 'info';
   const title = options.title || type.charAt(0).toUpperCase() + type.slice(1);
+  const styles = typeStyles[type];
 
   modal.innerHTML = `
-    <div class="bg-white rounded-xl shadow-xl max-w-md w-full animate-scale-up">
-      <div class="p-6">
+    <div class="card max-w-md w-full animate-scale-up" style="border-radius: 20px;">
+      <div class="p-7">
         <div class="flex items-start gap-4">
-          <div class="flex-shrink-0 p-2 rounded-full ${typeStyles[type]}">
+          <div class="flex-shrink-0 p-2.5 rounded-xl" style="background: ${styles.background}; color: ${styles.color}; border: 1px solid ${styles.border};">
             ${iconSvg[type]}
           </div>
           <div class="flex-1">
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">${title}</h3>
-            <p class="text-gray-600">${options.message}</p>
+            <h3 class="text-lg font-semibold mb-2" style="color: var(--text-primary); font-family: 'Fraunces', Georgia, serif;">${title}</h3>
+            <p style="color: var(--text-secondary); line-height: 1.6;">${options.message}</p>
           </div>
         </div>
         <div class="mt-6 flex justify-end">
-          <button class="modal-confirm px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors">
+          <button class="modal-confirm btn btn-primary">
             ${options.confirmText || 'OK'}
           </button>
         </div>

@@ -1,5 +1,9 @@
 import { GoogleGenAI, Type } from '@google/genai';
-import { DEFAULT_GEMINI_PROMPT, GEMINI_PROMPT_STORAGE_KEY, GEMINI_MODEL_STORAGE_KEY } from './constants';
+import {
+  DEFAULT_GEMINI_PROMPT,
+  GEMINI_MODEL_STORAGE_KEY,
+  GEMINI_PROMPT_STORAGE_KEY,
+} from './constants';
 
 interface IconResponse {
   svgPath: string;

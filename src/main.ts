@@ -2,8 +2,8 @@ import {
   API_KEY_STORAGE_KEY,
   DEFAULT_GEMINI_PROMPT,
   DEFAULT_QR_SIZE,
-  GEMINI_PROMPT_STORAGE_KEY,
   GEMINI_MODEL_STORAGE_KEY,
+  GEMINI_PROMPT_STORAGE_KEY,
 } from './constants';
 import { generateImageWithGemini } from './gemini';
 import { showModal } from './modal';
@@ -162,7 +162,7 @@ function initializeEventListeners(): void {
   if (logoSlider && logoDisplay) {
     logoSlider.addEventListener('input', (e) => {
       const target = e.target as HTMLInputElement;
-      const value = Number.parseInt(target.value);
+      const value = Number.parseInt(target.value, 10);
       logoDisplay.textContent = `${value}%`;
 
       // Add visual warning for large sizes
@@ -248,7 +248,7 @@ async function handleGenerateQRCode(): Promise<void> {
     return;
   }
 
-  const size = Number.parseInt(sizeInput?.value || DEFAULT_QR_SIZE.toString());
+  const size = Number.parseInt(sizeInput?.value || DEFAULT_QR_SIZE.toString(), 10);
 
   try {
     await generateQRCode(text, size, currentIcon);
@@ -437,7 +437,7 @@ function resetSystemPrompt(): void {
 function loadModel(): void {
   const savedModel = localStorage.getItem(GEMINI_MODEL_STORAGE_KEY);
   const modelInput = document.getElementById('gemini-model') as HTMLInputElement;
-  
+
   if (modelInput) {
     modelInput.value = savedModel || 'gemini-2.5-flash';
   }

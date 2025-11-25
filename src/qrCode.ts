@@ -29,10 +29,13 @@ export async function generateQRCode(
       const transparentBg =
         (document.getElementById('transparent-bg') as HTMLInputElement)?.checked || false;
       const logoSize =
-        Number.parseInt((document.getElementById('logo-size') as HTMLInputElement)?.value || '20') /
-        100;
+        Number.parseInt(
+          (document.getElementById('logo-size') as HTMLInputElement)?.value || '20',
+          10,
+        ) / 100;
       const borderSize = Number.parseInt(
         (document.getElementById('border-size') as HTMLInputElement)?.value || '5',
+        10,
       );
       await addIconToQRCode(canvas, iconSrc, transparentBg, logoSize, borderSize);
 
