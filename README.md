@@ -1,5 +1,7 @@
 # QR Code Generator with AI Icons
 
+![QR Code Generator Preview](public/preview.png)
+
 A modern, open-source QR code generator built with TypeScript and Tailwind CSS. Create custom QR codes with uploaded icons or AI-generated icons using Google's Gemini API.
 
 ## Features
