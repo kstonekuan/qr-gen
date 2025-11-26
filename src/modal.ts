@@ -60,7 +60,7 @@ export function showModal(options: ModalOptions): void {
     <div class="card max-w-md w-full animate-scale-up" style="border-radius: 20px;">
       <div class="p-7">
         <div class="flex items-start gap-4">
-          <div class="flex-shrink-0 p-2.5 rounded-xl" style="background: ${styles.background}; color: ${styles.color}; border: 1px solid ${styles.border};">
+          <div class="shrink-0 p-2.5 rounded-xl" style="background: ${styles.background}; color: ${styles.color}; border: 1px solid ${styles.border};">
             ${iconSvg[type]}
           </div>
           <div class="flex-1">
