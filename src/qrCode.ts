@@ -57,11 +57,11 @@ export async function generateQRCode(
       }
     }
 
-    // Show canvas and download button
+    // Show canvas and enable download button
     canvas.classList.remove('hidden');
-    const downloadButton = document.getElementById('download-qr');
+    const downloadButton = document.getElementById('download-qr') as HTMLButtonElement;
     if (downloadButton) {
-      downloadButton.classList.remove('hidden');
+      downloadButton.disabled = false;
     }
   } catch (error) {
     console.error('Error generating QR code:', error);

@@ -115,10 +115,13 @@ function initializeEventListeners(): void {
   }
 
   // API key management
-  const saveApiKeyButton = document.getElementById('save-api-key');
+  const apiKeyForm = document.getElementById('api-key-form');
   const clearApiKeyButton = document.getElementById('clear-api-key');
-  if (saveApiKeyButton) {
-    saveApiKeyButton.addEventListener('click', saveApiKey);
+  if (apiKeyForm) {
+    apiKeyForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      saveApiKey();
+    });
   }
   if (clearApiKeyButton) {
     clearApiKeyButton.addEventListener('click', clearApiKey);

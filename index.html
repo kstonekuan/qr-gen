@@ -156,7 +156,7 @@
         <div class="card qr-display animate-slide-up stagger-4">
             <canvas id="qr-canvas" class="hidden"></canvas>
             <div id="qr-warning" class="alert alert-warning hidden mt-4 w-full"></div>
-            <button id="download-qr" class="btn btn-success hidden mt-6">
+            <button id="download-qr" class="btn btn-success mt-6" disabled>
                 Download QR Code
             </button>
         </div>
@@ -165,26 +165,27 @@
         <details class="card settings-panel mt-8 animate-slide-up stagger-5">
             <summary>Gemini API Settings</summary>
             <div class="settings-panel-content">
-                <div class="mb-6">
+                <form id="api-key-form" class="mb-6" autocomplete="off">
                     <label for="api-key" class="label">API Key (stored locally)</label>
                     <input
                         type="password"
                         id="api-key"
                         placeholder="Enter your Gemini API key"
                         class="input-field mb-3"
+                        autocomplete="off"
                     >
                     <div class="flex gap-2">
-                        <button id="save-api-key" class="btn btn-primary btn-sm">
+                        <button type="submit" id="save-api-key" class="btn btn-primary btn-sm">
                             Save
                         </button>
-                        <button id="clear-api-key" class="btn btn-secondary btn-sm">
+                        <button type="button" id="clear-api-key" class="btn btn-secondary btn-sm">
                             Clear
                         </button>
                     </div>
                     <p class="hint mt-3">
                         Get your API key from <a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a>
                     </p>
-                </div>
+                </form>
 
                 <div class="mb-6">
                     <label for="gemini-model" class="label">Model</label>
