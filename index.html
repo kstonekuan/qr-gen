@@ -51,20 +51,27 @@
                     value="https://github.com/kstonekuan/qr-gen" class="input-field">
             </section>
 
-            <!-- QR Size Slider -->
+            <!-- Square Size Slider -->
             <section class="mb-8">
-                <label for="qr-size" class="label">QR Code Size</label>
+                <label for="square-size" class="label">Square Size</label>
                 <div class="flex items-center gap-4">
-                    <input type="range" id="qr-size" min="200" max="500" value="300" class="range-slider flex-1">
-                    <span id="size-display" class="value-display">300px</span>
+                    <div class="slider-with-midpoint">
+                        <input type="range" id="square-size" min="6" max="14" value="10" class="range-slider">
+                        <span class="snap-marker-end"></span>
+                    </div>
+                    <span id="square-size-display" class="value-display">10px</span>
                 </div>
+                <p class="hint">Size of each square in the QR code</p>
             </section>
 
             <!-- QR Finder Pattern Rounding -->
             <section class="mb-8">
                 <label for="finder-rounding" class="label">Finder Pattern Rounding</label>
                 <div class="flex items-center gap-4">
-                    <input type="range" id="finder-rounding" min="0" max="50" value="0" class="range-slider flex-1">
+                    <div class="slider-with-midpoint">
+                        <input type="range" id="finder-rounding" min="0" max="50" value="0" class="range-slider">
+                        <span class="snap-marker-end"></span>
+                    </div>
                     <span id="finder-rounding-display" class="value-display">0%</span>
                 </div>
                 <p class="hint">Rounds the corner boxes. 0% = square, 50% = circular</p>
@@ -74,7 +81,10 @@
             <section class="mb-8">
                 <label for="module-rounding" class="label">Module Rounding</label>
                 <div class="flex items-center gap-4">
-                    <input type="range" id="module-rounding" min="0" max="50" value="0" class="range-slider flex-1">
+                    <div class="slider-with-midpoint">
+                        <input type="range" id="module-rounding" min="0" max="50" value="0" class="range-slider">
+                        <span class="snap-marker-end"></span>
+                    </div>
                     <span id="module-rounding-display" class="value-display">0%</span>
                 </div>
                 <p class="hint">Rounds the data squares. 0% = square, 50% = circular</p>
@@ -137,8 +147,10 @@
                         <div>
                             <label for="logo-size" class="label">Logo Size</label>
                             <div class="flex items-center gap-4">
-                                <input type="range" id="logo-size" min="10" max="30" value="20"
-                                    class="range-slider flex-1">
+                                <div class="slider-with-midpoint">
+                                    <input type="range" id="logo-size" min="10" max="30" value="20" class="range-slider">
+                                    <span class="snap-marker-end"></span>
+                                </div>
                                 <span id="logo-size-display" class="value-display">20%</span>
                             </div>
                             <p class="hint">Recommended: 15-25%. Larger sizes may affect scanning.</p>
@@ -147,8 +159,10 @@
                         <div id="border-size-control">
                             <label for="border-size" class="label">Border Size</label>
                             <div class="flex items-center gap-4">
-                                <input type="range" id="border-size" min="0" max="10" value="5" step="1"
-                                    class="range-slider flex-1">
+                                <div class="slider-with-midpoint">
+                                    <input type="range" id="border-size" min="0" max="10" value="5" step="1" class="range-slider">
+                                    <span class="snap-marker-end"></span>
+                                </div>
                                 <span id="border-size-display" class="value-display">5%</span>
                             </div>
                         </div>
@@ -161,9 +175,11 @@
                         <div id="corner-radius-control" class="opacity-50 pointer-events-none">
                             <label for="corner-radius" class="label">Corner Radius</label>
                             <div class="flex items-center gap-4">
-                                <input type="range" id="corner-radius" min="0" max="50" value="15" step="1"
-                                    class="range-slider flex-1">
-                                <span id="corner-radius-display" class="value-display">15%</span>
+                                <div class="slider-with-midpoint">
+                                    <input type="range" id="corner-radius" min="0" max="50" value="25" step="1" class="range-slider">
+                                    <span class="snap-marker-end"></span>
+                                </div>
+                                <span id="corner-radius-display" class="value-display">25%</span>
                             </div>
                             <p class="hint">0% = sharp corners, 50% = circular</p>
                         </div>

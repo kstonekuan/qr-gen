@@ -1,7 +1,7 @@
 import {
   API_KEY_STORAGE_KEY,
   DEFAULT_GEMINI_PROMPT,
-  DEFAULT_QR_SIZE,
+  DEFAULT_SQUARE_SIZE,
   GEMINI_MODEL_STORAGE_KEY,
   GEMINI_PROMPT_STORAGE_KEY,
 } from './constants';
@@ -149,64 +149,104 @@ function initializeEventListeners(): void {
     });
   }
 
-  // Size slider
-  const sizeSlider = document.getElementById('qr-size') as HTMLInputElement;
-  const sizeDisplay = document.getElementById('size-display');
-  if (sizeSlider && sizeDisplay) {
-    sizeSlider.addEventListener('input', (e) => {
-      const target = e.target as HTMLInputElement;
-      sizeDisplay.textContent = `${target.value}px`;
+  // Velocity-based snapping for sliders
+  // Fast drags snap to min, midpoint, or max; slow drags allow fine control
+  function setupSliderWithMidpointSnap(
+    slider: HTMLInputElement,
+    display: HTMLElement,
+    formatValue: (value: number) => string,
+    onValueChange?: (value: number) => void,
+  ): void {
+    let lastValue = Number.parseFloat(slider.value);
+    let lastTime = performance.now();
+
+    const min = Number.parseFloat(slider.min);
+    const max = Number.parseFloat(slider.max);
+    const midpoint = (min + max) / 2;
+    const range = max - min;
+    const snapPoints = [min, midpoint, max];
+
+    // Thresholds for snapping behavior
+    const velocityThreshold = 0.001; // Normalized velocity (fraction of range per ms)
+    const snapDistance = range * 0.1; // How close to snap point to trigger snap
+
+    slider.addEventListener('input', () => {
+      const currentValue = Number.parseFloat(slider.value);
+      const currentTime = performance.now();
+      const deltaTime = currentTime - lastTime;
+      const deltaValue = Math.abs(currentValue - lastValue);
+
+      // Calculate normalized velocity (as fraction of range per millisecond)
+      const velocity = deltaTime > 0 ? deltaValue / range / deltaTime : 0;
+
+      let finalValue = currentValue;
+
+      // If moving fast, check if near any snap point
+      if (velocity > velocityThreshold) {
+        for (const snapPoint of snapPoints) {
+          if (Math.abs(currentValue - snapPoint) < snapDistance) {
+            finalValue = snapPoint;
+            slider.value = String(snapPoint);
+            break;
+          }
+        }
+      }
+
+      display.textContent = formatValue(finalValue);
+      onValueChange?.(finalValue);
+
+      lastValue = finalValue;
+      lastTime = currentTime;
     });
+  }
+
+  // Square size slider
+  const squareSizeSlider = document.getElementById('square-size') as HTMLInputElement;
+  const squareSizeDisplay = document.getElementById('square-size-display');
+  if (squareSizeSlider && squareSizeDisplay) {
+    setupSliderWithMidpointSnap(squareSizeSlider, squareSizeDisplay, (v) => `${v}px`);
   }
 
   // Finder rounding slider
   const finderRoundingSlider = document.getElementById('finder-rounding') as HTMLInputElement;
   const finderRoundingDisplay = document.getElementById('finder-rounding-display');
   if (finderRoundingSlider && finderRoundingDisplay) {
-    finderRoundingSlider.addEventListener('input', (e) => {
-      const target = e.target as HTMLInputElement;
-      finderRoundingDisplay.textContent = `${target.value}%`;
-    });
+    setupSliderWithMidpointSnap(finderRoundingSlider, finderRoundingDisplay, (v) => `${v}%`);
   }
 
   // Module rounding slider
   const moduleRoundingSlider = document.getElementById('module-rounding') as HTMLInputElement;
   const moduleRoundingDisplay = document.getElementById('module-rounding-display');
   if (moduleRoundingSlider && moduleRoundingDisplay) {
-    moduleRoundingSlider.addEventListener('input', (e) => {
-      const target = e.target as HTMLInputElement;
-      moduleRoundingDisplay.textContent = `${target.value}%`;
-    });
+    setupSliderWithMidpointSnap(moduleRoundingSlider, moduleRoundingDisplay, (v) => `${v}%`);
   }
 
   // Logo size slider
   const logoSlider = document.getElementById('logo-size') as HTMLInputElement;
   const logoDisplay = document.getElementById('logo-size-display');
   if (logoSlider && logoDisplay) {
-    logoSlider.addEventListener('input', (e) => {
-      const target = e.target as HTMLInputElement;
-      const value = Number.parseInt(target.value, 10);
-      logoDisplay.textContent = `${value}%`;
-
-      // Add visual warning for large sizes
-      if (value > 25) {
-        logoDisplay.classList.add('text-amber-600');
-        logoDisplay.setAttribute('title', 'Large logos may affect QR code scanning');
-      } else {
-        logoDisplay.classList.remove('text-amber-600');
-        logoDisplay.removeAttribute('title');
-      }
-    });
+    setupSliderWithMidpointSnap(
+      logoSlider,
+      logoDisplay,
+      (v) => `${v}%`,
+      (value) => {
+        // Add visual warning for large sizes
+        if (value > 25) {
+          logoDisplay.classList.add('text-amber-600');
+          logoDisplay.setAttribute('title', 'Large logos may affect QR code scanning');
+        } else {
+          logoDisplay.classList.remove('text-amber-600');
+          logoDisplay.removeAttribute('title');
+        }
+      },
+    );
   }
 
   // Border size slider
   const borderSlider = document.getElementById('border-size') as HTMLInputElement;
   const borderDisplay = document.getElementById('border-size-display');
   if (borderSlider && borderDisplay) {
-    borderSlider.addEventListener('input', (e) => {
-      const target = e.target as HTMLInputElement;
-      borderDisplay.textContent = `${target.value}%`; // Changed to %
-    });
+    setupSliderWithMidpointSnap(borderSlider, borderDisplay, (v) => `${v}%`);
   }
 
   // Transparent background checkbox
@@ -241,10 +281,7 @@ function initializeEventListeners(): void {
   const cornerRadiusSlider = document.getElementById('corner-radius') as HTMLInputElement;
   const cornerRadiusDisplay = document.getElementById('corner-radius-display');
   if (cornerRadiusSlider && cornerRadiusDisplay) {
-    cornerRadiusSlider.addEventListener('input', (e) => {
-      const target = e.target as HTMLInputElement;
-      cornerRadiusDisplay.textContent = `${target.value}%`;
-    });
+    setupSliderWithMidpointSnap(cornerRadiusSlider, cornerRadiusDisplay, (v) => `${v}%`);
   }
 }
 
@@ -283,7 +320,7 @@ function clearIcon(): void {
 
 async function handleGenerateQRCode(): Promise<void> {
   const textInput = document.getElementById('qr-text') as HTMLInputElement;
-  const sizeInput = document.getElementById('qr-size') as HTMLInputElement;
+  const squareSizeInput = document.getElementById('square-size') as HTMLInputElement;
 
   const text = textInput?.value.trim();
   if (!text) {
@@ -295,10 +332,10 @@ async function handleGenerateQRCode(): Promise<void> {
     return;
   }
 
-  const size = Number.parseInt(sizeInput?.value || DEFAULT_QR_SIZE.toString(), 10);
+  const moduleSize = Number.parseInt(squareSizeInput?.value || DEFAULT_SQUARE_SIZE.toString(), 10);
 
   try {
-    await generateQRCode(text, size, currentIcon);
+    await generateQRCode(text, moduleSize, currentIcon);
   } catch (error) {
     showModal({
       type: 'error',

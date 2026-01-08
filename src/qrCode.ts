@@ -25,6 +25,32 @@ function isInFinderPattern(row: number, col: number, moduleCount: number): boole
   return false;
 }
 
+function isInLogoArea(
+  row: number,
+  col: number,
+  moduleCount: number,
+  marginModules: number,
+  logoSizeRatio: number,
+  borderSizePercent: number,
+): boolean {
+  // Calculate in the same coordinate system as addIconToQRCode
+  // addIconToQRCode uses canvas.width which includes margin
+  const totalSize = moduleCount + marginModules * 2;
+  const logoModules = totalSize * logoSizeRatio;
+  const borderModules = logoModules * (borderSizePercent / 100);
+  const totalLogoModules = logoModules + borderModules * 2;
+
+  // Center position relative to data area (excluding margin)
+  const centerModule = moduleCount / 2;
+  const halfLogoModules = totalLogoModules / 2;
+
+  // Floor start and ceil end to ensure symmetric clearing that fully covers the icon
+  const startModule = Math.floor(centerModule - halfLogoModules);
+  const endModule = Math.ceil(centerModule + halfLogoModules);
+
+  return row >= startModule && row < endModule && col >= startModule && col < endModule;
+}
+
 function drawFinderPattern(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -54,29 +80,36 @@ function drawFinderPattern(
   drawRoundedRect(ctx, x + moduleSize * 2, y + moduleSize * 2, size3, size3, innerRadius);
 }
 
+interface LogoAreaConfig {
+  hasLogo: boolean;
+  logoSizeRatio: number;
+  borderSizePercent: number;
+}
+
 function renderRoundedQR(
   canvas: HTMLCanvasElement,
   qrData: ReturnType<typeof QRCode.create>,
-  size: number,
+  moduleSize: number,
   marginModules: number,
   finderRoundingPercent: number,
   moduleRoundingPercent: number,
+  logoArea: LogoAreaConfig = { hasLogo: false, logoSizeRatio: 0, borderSizePercent: 0 },
 ): void {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
   const moduleCount = qrData.modules.size;
-  // Calculate module size the same way qrcode library does (margin is in module units)
-  const moduleSize = size / (moduleCount + marginModules * 2);
+  // moduleSize is now an integer from the slider, so all calculations are clean
   const margin = moduleSize * marginModules;
+  const canvasSize = moduleSize * (moduleCount + marginModules * 2);
   const moduleRadius = (moduleSize / 2) * (moduleRoundingPercent / 50);
 
-  canvas.width = size;
-  canvas.height = size;
+  canvas.width = canvasSize;
+  canvas.height = canvasSize;
 
   // Fill background
   ctx.fillStyle = '#FFFFFF';
-  ctx.fillRect(0, 0, size, size);
+  ctx.fillRect(0, 0, canvasSize, canvasSize);
 
   // Draw finder patterns as whole rounded shapes
   // Top-left
@@ -98,14 +131,30 @@ function renderRoundedQR(
     finderRoundingPercent,
   );
 
-  // Draw data modules (skip finder pattern areas)
+  // Draw data modules (skip finder pattern areas and logo area)
   ctx.fillStyle = '#000000';
   for (let row = 0; row < moduleCount; row++) {
     for (let col = 0; col < moduleCount; col++) {
       // Skip finder pattern areas
       if (isInFinderPattern(row, col, moduleCount)) continue;
 
+      // Skip logo area if logo is present
+      if (
+        logoArea.hasLogo &&
+        isInLogoArea(
+          row,
+          col,
+          moduleCount,
+          marginModules,
+          logoArea.logoSizeRatio,
+          logoArea.borderSizePercent,
+        )
+      ) {
+        continue;
+      }
+
       if (qrData.modules.get(row, col)) {
+        // All positions are now clean integers (no rounding needed)
         const x = margin + col * moduleSize;
         const y = margin + row * moduleSize;
 
@@ -121,7 +170,7 @@ function renderRoundedQR(
 
 export async function generateQRCode(
   text: string,
-  size: number,
+  moduleSize: number,
   iconSrc: string | null,
 ): Promise<void> {
   const canvas = document.getElementById('qr-canvas') as HTMLCanvasElement;
@@ -136,57 +185,73 @@ export async function generateQRCode(
     10,
   );
 
-  const options: QRCodeOptions = {
-    width: size,
-    margin: 2,
-    color: {
-      dark: '#000000',
-      light: '#FFFFFF',
-    },
-    errorCorrectionLevel: 'H', // High error correction (30% damage tolerance)
-  };
+  const marginModules = 2;
+
+  // Get logo settings upfront (needed for both QR generation and icon addition)
+  const logoSizeRatio =
+    Number.parseInt((document.getElementById('logo-size') as HTMLInputElement)?.value || '20', 10) /
+    100;
+  const borderSizePercent = Number.parseInt(
+    (document.getElementById('border-size') as HTMLInputElement)?.value || '5',
+    10,
+  );
+  const transparentBg =
+    (document.getElementById('transparent-bg') as HTMLInputElement)?.checked || false;
+  const roundedCorners =
+    (document.getElementById('logo-rounded') as HTMLInputElement)?.checked || false;
+  const cornerRadiusPercent = Number.parseInt(
+    (document.getElementById('corner-radius') as HTMLInputElement)?.value || '15',
+    10,
+  );
 
   try {
-    // Generate QR code - use custom rendering if any rounding is enabled
-    if (finderRoundingPercent > 0 || moduleRoundingPercent > 0) {
-      const qrData = QRCode.create(text, { errorCorrectionLevel: 'H' });
+    // Generate QR data to get module count
+    const qrData = QRCode.create(text, { errorCorrectionLevel: 'H' });
+    const moduleCount = qrData.modules.size;
+
+    // Calculate canvas size from module size (all integers, no rounding issues)
+    const canvasSize = moduleSize * (moduleCount + marginModules * 2);
+
+    // Use custom rendering if any rounding is enabled OR if logo is present (to skip modules under logo)
+    const useCustomRendering =
+      finderRoundingPercent > 0 || moduleRoundingPercent > 0 || iconSrc !== null;
+
+    if (useCustomRendering) {
+      const logoArea: LogoAreaConfig = iconSrc
+        ? { hasLogo: true, logoSizeRatio, borderSizePercent }
+        : { hasLogo: false, logoSizeRatio: 0, borderSizePercent: 0 };
+
       renderRoundedQR(
         canvas,
         qrData,
-        size,
-        options.margin,
+        moduleSize,
+        marginModules,
         finderRoundingPercent,
         moduleRoundingPercent,
+        logoArea,
       );
     } else {
+      // Standard rendering with calculated size
+      const options: QRCodeOptions = {
+        width: canvasSize,
+        margin: marginModules,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF',
+        },
+        errorCorrectionLevel: 'H',
+      };
       await QRCode.toCanvas(canvas, text, options);
     }
 
     // Add icon if available
     if (iconSrc) {
-      const transparentBg =
-        (document.getElementById('transparent-bg') as HTMLInputElement)?.checked || false;
-      const logoSize =
-        Number.parseInt(
-          (document.getElementById('logo-size') as HTMLInputElement)?.value || '20',
-          10,
-        ) / 100;
-      const borderSize = Number.parseInt(
-        (document.getElementById('border-size') as HTMLInputElement)?.value || '5',
-        10,
-      );
-      const roundedCorners =
-        (document.getElementById('logo-rounded') as HTMLInputElement)?.checked || false;
-      const cornerRadiusPercent = Number.parseInt(
-        (document.getElementById('corner-radius') as HTMLInputElement)?.value || '15',
-        10,
-      );
       await addIconToQRCode(
         canvas,
         iconSrc,
         transparentBg,
-        logoSize,
-        borderSize,
+        logoSizeRatio,
+        borderSizePercent,
         roundedCorners,
         cornerRadiusPercent,
       );

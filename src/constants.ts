@@ -9,9 +9,9 @@ export const GEMINI_PROMPT_STORAGE_KEY = 'gemini_system_prompt';
 export const GEMINI_MODEL_STORAGE_KEY = 'gemini_model';
 
 // UI constants
-export const MIN_QR_SIZE = 200;
-export const MAX_QR_SIZE = 500;
-export const DEFAULT_QR_SIZE = 300;
+export const MIN_SQUARE_SIZE = 6;
+export const MAX_SQUARE_SIZE = 14;
+export const DEFAULT_SQUARE_SIZE = 10;
 
 // Gemini constants
 export const DEFAULT_GEMINI_PROMPT = `You are an SVG icon designer. Given a user prompt, create a simple, minimalist SVG icon suitable for QR code centers.

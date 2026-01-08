@@ -253,6 +253,63 @@ body {
   box-shadow: 0 3px 10px hsl(12 76% 62% / 0.4);
 }
 
+/* Slider with snap point markers (start, middle, end) */
+.slider-with-midpoint {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+/* Start marker (aligned with thumb center at min position) */
+.slider-with-midpoint::before {
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 4px;
+  height: 4px;
+  background: var(--text-muted);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Middle marker (with end marker via box-shadow) */
+.slider-with-midpoint::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 4px;
+  height: 4px;
+  background: var(--text-muted);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* End marker (aligned with thumb center at max position) */
+.slider-with-midpoint .snap-marker-end {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translate(50%, -50%);
+  width: 4px;
+  height: 4px;
+  background: var(--text-muted);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.slider-with-midpoint .range-slider {
+  flex: 1;
+  width: 100%;
+}
+
 /* ===== Upload Zone ===== */
 .upload-zone {
   display: flex;
@@ -474,7 +531,7 @@ body {
 
 /* ===== Value Display (for sliders) ===== */
 .value-display {
-  min-width: 56px;
+  min-width: 64px;
   padding: 6px 12px;
   font-size: 0.875rem;
   font-weight: 600;
