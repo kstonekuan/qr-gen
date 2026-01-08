@@ -159,6 +159,26 @@ function initializeEventListeners(): void {
     });
   }
 
+  // Finder rounding slider
+  const finderRoundingSlider = document.getElementById('finder-rounding') as HTMLInputElement;
+  const finderRoundingDisplay = document.getElementById('finder-rounding-display');
+  if (finderRoundingSlider && finderRoundingDisplay) {
+    finderRoundingSlider.addEventListener('input', (e) => {
+      const target = e.target as HTMLInputElement;
+      finderRoundingDisplay.textContent = `${target.value}%`;
+    });
+  }
+
+  // Module rounding slider
+  const moduleRoundingSlider = document.getElementById('module-rounding') as HTMLInputElement;
+  const moduleRoundingDisplay = document.getElementById('module-rounding-display');
+  if (moduleRoundingSlider && moduleRoundingDisplay) {
+    moduleRoundingSlider.addEventListener('input', (e) => {
+      const target = e.target as HTMLInputElement;
+      moduleRoundingDisplay.textContent = `${target.value}%`;
+    });
+  }
+
   // Logo size slider
   const logoSlider = document.getElementById('logo-size') as HTMLInputElement;
   const logoDisplay = document.getElementById('logo-size-display');
@@ -200,6 +220,30 @@ function initializeEventListeners(): void {
       } else {
         borderControl.classList.remove('opacity-50', 'pointer-events-none');
       }
+    });
+  }
+
+  // Rounded corners checkbox
+  const roundedCheckbox = document.getElementById('logo-rounded') as HTMLInputElement;
+  const cornerRadiusControl = document.getElementById('corner-radius-control');
+  if (roundedCheckbox && cornerRadiusControl) {
+    roundedCheckbox.addEventListener('change', (e) => {
+      const target = e.target as HTMLInputElement;
+      if (target.checked) {
+        cornerRadiusControl.classList.remove('opacity-50', 'pointer-events-none');
+      } else {
+        cornerRadiusControl.classList.add('opacity-50', 'pointer-events-none');
+      }
+    });
+  }
+
+  // Corner radius slider
+  const cornerRadiusSlider = document.getElementById('corner-radius') as HTMLInputElement;
+  const cornerRadiusDisplay = document.getElementById('corner-radius-display');
+  if (cornerRadiusSlider && cornerRadiusDisplay) {
+    cornerRadiusSlider.addEventListener('input', (e) => {
+      const target = e.target as HTMLInputElement;
+      cornerRadiusDisplay.textContent = `${target.value}%`;
     });
   }
 }

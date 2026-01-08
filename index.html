@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,27 +10,33 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://kstonekuan.github.io/qr-gen/">
     <meta property="og:title" content="QR Code Generator with AI Icons">
-    <meta property="og:description" content="Create custom QR codes with uploaded icons or AI-generated icons using Google's Gemini API">
+    <meta property="og:description"
+        content="Create custom QR codes with uploaded icons or AI-generated icons using Google's Gemini API">
     <meta property="og:image" content="https://kstonekuan.github.io/qr-gen/preview.png">
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="QR Code Generator with AI Icons">
-    <meta name="twitter:description" content="Create custom QR codes with uploaded icons or AI-generated icons using Google's Gemini API">
+    <meta name="twitter:description"
+        content="Create custom QR codes with uploaded icons or AI-generated icons using Google's Gemini API">
     <meta name="twitter:image" content="https://kstonekuan.github.io/qr-gen/preview.png">
 
     <link rel="icon" type="image/svg+xml" href="./favicon.svg">
     <link rel="alternate icon" href="./favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="./src/style.css">
 </head>
+
 <body class="min-h-screen">
     <div class="max-w-xl mx-auto px-5 py-12 md:py-16">
         <!-- Header -->
         <header class="text-center mb-10 animate-slide-up stagger-1">
-            <h1 class="font-display text-4xl md:text-5xl font-semibold tracking-tight mb-3" style="color: var(--text-primary);">
+            <h1 class="font-display text-4xl md:text-5xl font-semibold tracking-tight mb-3"
+                style="color: var(--text-primary);">
                 QR Code Generator
             </h1>
             <p class="text-lg" style="color: var(--text-secondary);">Create custom QR codes with icons</p>
@@ -40,36 +47,45 @@
             <!-- URL Input Section -->
             <section class="mb-8">
                 <label for="qr-text" class="label">Enter text or URL</label>
-                <input
-                    type="text"
-                    id="qr-text"
-                    placeholder="https://example.com"
-                    value="https://github.com/kstonekuan/qr-gen"
-                    class="input-field"
-                >
+                <input type="text" id="qr-text" placeholder="https://example.com"
+                    value="https://github.com/kstonekuan/qr-gen" class="input-field">
             </section>
 
             <!-- QR Size Slider -->
             <section class="mb-8">
                 <label for="qr-size" class="label">QR Code Size</label>
                 <div class="flex items-center gap-4">
-                    <input
-                        type="range"
-                        id="qr-size"
-                        min="200"
-                        max="500"
-                        value="300"
-                        class="range-slider flex-1"
-                    >
+                    <input type="range" id="qr-size" min="200" max="500" value="300" class="range-slider flex-1">
                     <span id="size-display" class="value-display">300px</span>
                 </div>
+            </section>
+
+            <!-- QR Finder Pattern Rounding -->
+            <section class="mb-8">
+                <label for="finder-rounding" class="label">Finder Pattern Rounding</label>
+                <div class="flex items-center gap-4">
+                    <input type="range" id="finder-rounding" min="0" max="50" value="0" class="range-slider flex-1">
+                    <span id="finder-rounding-display" class="value-display">0%</span>
+                </div>
+                <p class="hint">Rounds the corner boxes. 0% = square, 50% = circular</p>
+            </section>
+
+            <!-- QR Module Rounding -->
+            <section class="mb-8">
+                <label for="module-rounding" class="label">Module Rounding</label>
+                <div class="flex items-center gap-4">
+                    <input type="range" id="module-rounding" min="0" max="50" value="0" class="range-slider flex-1">
+                    <span id="module-rounding-display" class="value-display">0%</span>
+                </div>
+                <p class="hint">Rounds the data squares. 0% = square, 50% = circular</p>
             </section>
 
             <div class="divider"></div>
 
             <!-- Icon Options Section -->
             <section>
-                <h2 class="font-display text-xl font-semibold mb-5" style="color: var(--text-primary);">Icon Options</h2>
+                <h2 class="font-display text-xl font-semibold mb-5" style="color: var(--text-primary);">Icon Options
+                </h2>
 
                 <!-- Tab Container -->
                 <div class="tab-container mb-6">
@@ -85,8 +101,10 @@
                 <div id="upload-tab" class="tab-content active">
                     <input type="file" id="icon-upload" accept="image/*" class="hidden">
                     <label for="icon-upload" class="upload-zone">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
                         </svg>
                         <span class="font-semibold">Choose an icon</span>
                     </label>
@@ -96,12 +114,8 @@
                 <!-- Generate Tab -->
                 <div id="generate-tab" class="tab-content hidden">
                     <div class="flex flex-col sm:flex-row gap-3">
-                        <input
-                            type="text"
-                            id="ai-prompt"
-                            placeholder="Describe the icon you want..."
-                            class="input-field flex-1"
-                        >
+                        <input type="text" id="ai-prompt" placeholder="Describe the icon you want..."
+                            class="input-field flex-1">
                         <button id="generate-icon" class="btn btn-primary whitespace-nowrap">
                             Generate Icon
                         </button>
@@ -123,14 +137,8 @@
                         <div>
                             <label for="logo-size" class="label">Logo Size</label>
                             <div class="flex items-center gap-4">
-                                <input
-                                    type="range"
-                                    id="logo-size"
-                                    min="10"
-                                    max="30"
-                                    value="20"
-                                    class="range-slider flex-1"
-                                >
+                                <input type="range" id="logo-size" min="10" max="30" value="20"
+                                    class="range-slider flex-1">
                                 <span id="logo-size-display" class="value-display">20%</span>
                             </div>
                             <p class="hint">Recommended: 15-25%. Larger sizes may affect scanning.</p>
@@ -139,17 +147,25 @@
                         <div id="border-size-control">
                             <label for="border-size" class="label">Border Size</label>
                             <div class="flex items-center gap-4">
-                                <input
-                                    type="range"
-                                    id="border-size"
-                                    min="0"
-                                    max="10"
-                                    value="5"
-                                    step="1"
-                                    class="range-slider flex-1"
-                                >
+                                <input type="range" id="border-size" min="0" max="10" value="5" step="1"
+                                    class="range-slider flex-1">
                                 <span id="border-size-display" class="value-display">5%</span>
                             </div>
+                        </div>
+
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" id="logo-rounded">
+                            <span style="color: var(--text-secondary);">Rounded corners</span>
+                        </label>
+
+                        <div id="corner-radius-control" class="opacity-50 pointer-events-none">
+                            <label for="corner-radius" class="label">Corner Radius</label>
+                            <div class="flex items-center gap-4">
+                                <input type="range" id="corner-radius" min="0" max="50" value="15" step="1"
+                                    class="range-slider flex-1">
+                                <span id="corner-radius-display" class="value-display">15%</span>
+                            </div>
+                            <p class="hint">0% = sharp corners, 50% = circular</p>
                         </div>
                     </div>
                 </div>
@@ -181,13 +197,8 @@
             <div class="settings-panel-content">
                 <form id="api-key-form" class="mb-6" autocomplete="off">
                     <label for="api-key" class="label">API Key (stored locally)</label>
-                    <input
-                        type="password"
-                        id="api-key"
-                        placeholder="Enter your Gemini API key"
-                        class="input-field mb-3"
-                        autocomplete="off"
-                    >
+                    <input type="password" id="api-key" placeholder="Enter your Gemini API key" class="input-field mb-3"
+                        autocomplete="off">
                     <div class="flex gap-2">
                         <button type="submit" id="save-api-key" class="btn btn-primary btn-sm">
                             Save
@@ -197,19 +208,15 @@
                         </button>
                     </div>
                     <p class="hint mt-3">
-                        Get your API key from <a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a>
+                        Get your API key from <a href="https://aistudio.google.com/apikey" target="_blank">Google AI
+                            Studio</a>
                     </p>
                 </form>
 
                 <div class="mb-6">
                     <label for="gemini-model" class="label">Model</label>
-                    <input
-                        type="text"
-                        id="gemini-model"
-                        placeholder="gemini-2.5-flash"
-                        value="gemini-2.5-flash"
-                        class="input-field"
-                    >
+                    <input type="text" id="gemini-model" placeholder="gemini-3-flash" value="gemini-3-flash"
+                        class="input-field">
                     <p class="hint mt-2">
                         See <a href="https://ai.google.dev/gemini-api/docs/models" target="_blank">available models</a>
                         <br>
@@ -221,12 +228,8 @@
 
                 <div>
                     <label for="system-prompt" class="label">System Prompt</label>
-                    <textarea
-                        id="system-prompt"
-                        rows="4"
-                        placeholder="Enter custom system prompt for Gemini..."
-                        class="input-field"
-                    ></textarea>
+                    <textarea id="system-prompt" rows="4" placeholder="Enter custom system prompt for Gemini..."
+                        class="input-field"></textarea>
                     <div class="flex gap-2 mt-3">
                         <button id="save-prompt" class="btn btn-primary btn-sm">
                             Save Prompt
@@ -241,9 +244,12 @@
 
         <!-- Footer -->
         <footer class="text-center mt-10 animate-slide-up stagger-5">
-            <a href="https://github.com/kstonekuan/qr-gen" target="_blank" rel="noopener noreferrer" class="inline-block transition-opacity hover:opacity-70" aria-label="View on GitHub">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="color: var(--text-secondary);">
-                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            <a href="https://github.com/kstonekuan/qr-gen" target="_blank" rel="noopener noreferrer"
+                class="inline-block transition-opacity hover:opacity-70" aria-label="View on GitHub">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"
+                    style="color: var(--text-secondary);">
+                    <path
+                        d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
                 </svg>
             </a>
         </footer>
@@ -251,4 +257,5 @@
 
     <script type="module" src="./src/main.ts"></script>
 </body>
+
 </html>
