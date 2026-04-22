@@ -1,5 +1,6 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.3.11/schema.json",
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
   "files": {
     "includes": [
       "**/src/**",
@@ -29,10 +30,13 @@
         "noBannedTypes": "error",
         "noUselessConstructor": "error",
         "useOptionalChain": "error",
-        "noForEach": "off"
+        "noForEach": "off",
+        "useLiteralKeys": "off"
       },
       "correctness": {
         "noUnusedVariables": "error",
+        "noUnusedImports": "error",
+        "noUnusedFunctionParameters": "error",
         "useExhaustiveDependencies": "warn"
       },
       "style": {

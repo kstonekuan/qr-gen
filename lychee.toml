@@ -1,0 +1,5 @@
+# Vite serves public/ from site root at runtime; lychee's file:// resolver
+# can't see that convention, so these appear as broken local refs.
+exclude = [
+  "^file://.*/favicon\\.(svg|png)$",
+]

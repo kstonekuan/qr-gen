@@ -1,20 +1,20 @@
 import {
   API_KEY_STORAGE_KEY,
+  DEFAULT_GEMINI_MODEL,
   DEFAULT_GEMINI_PROMPT,
-  DEFAULT_SQUARE_SIZE,
   GEMINI_MODEL_STORAGE_KEY,
   GEMINI_PROMPT_STORAGE_KEY,
+  QR_INPUT,
 } from './constants';
+import { findElement, requireButton, requireCanvas, requireInput, requireTextarea } from './dom';
 import { generateImageWithGemini } from './gemini';
 import { showModal } from './modal';
 import { downloadQRCode, generateQRCode } from './qrCode';
 import { checkRateLimit, incrementRateLimit, updateRateLimitDisplay } from './rateLimit';
-import type { TabType } from './types';
+import { type IconRender, parseTabType, type QRCodeFormConfig, type TabType } from './types';
 
-// State
 let currentIcon: string | null = null;
 
-// Initialize
 document.addEventListener('DOMContentLoaded', () => {
   initializeTabs();
   initializeEventListeners();
@@ -30,278 +30,288 @@ function initializeTabs(): void {
 
   tabButtons.forEach((button) => {
     button.addEventListener('click', () => {
-      const targetTab = button.dataset.tab as TabType;
+      const targetTab = parseTabType(button.dataset['tab']);
+      if (!targetTab) return;
 
-      // Check if generate tab is clicked without API key
-      if (targetTab === 'generate') {
-        const apiKey = localStorage.getItem(API_KEY_STORAGE_KEY);
-        if (!apiKey) {
-          showModal({
-            type: 'warning',
-            title: 'API Key Required',
-            message:
-              'Please configure your Gemini API key in the settings below to use AI generation.',
-          });
-          return;
-        }
+      if (targetTab === 'generate' && !localStorage.getItem(API_KEY_STORAGE_KEY)) {
+        showModal({
+          type: 'warning',
+          title: 'API Key Required',
+          message:
+            'Please configure your Gemini API key in the settings below to use AI generation.',
+        });
+        return;
       }
 
-      tabButtons.forEach((btn) => {
-        btn.classList.remove('active', 'bg-blue-600', 'text-white');
-        btn.classList.add('bg-gray-100', 'text-gray-600');
-      });
-      tabContents.forEach((content) => {
-        content.classList.remove('active');
-        content.classList.add('hidden');
-      });
-
-      button.classList.add('active', 'bg-blue-600', 'text-white');
-      button.classList.remove('bg-gray-100', 'text-gray-600');
-      const tabElement = document.getElementById(`${targetTab}-tab`);
-      if (tabElement) {
-        tabElement.classList.add('active');
-        tabElement.classList.remove('hidden');
-      }
+      activateTab(tabButtons, tabContents, button, targetTab);
     });
   });
 }
 
-function initializeEventListeners(): void {
-  // QR generation
-  const generateButton = document.getElementById('generate-qr');
-  const downloadButton = document.getElementById('download-qr');
-  const qrTextInput = document.getElementById('qr-text') as HTMLInputElement;
+function activateTab(
+  tabButtons: NodeListOf<HTMLButtonElement>,
+  tabContents: NodeListOf<HTMLDivElement>,
+  activeButton: HTMLButtonElement,
+  targetTab: TabType,
+): void {
+  tabButtons.forEach((btn) => {
+    btn.classList.remove('active', 'bg-blue-600', 'text-white');
+    btn.classList.add('bg-gray-100', 'text-gray-600');
+  });
+  tabContents.forEach((content) => {
+    content.classList.remove('active');
+    content.classList.add('hidden');
+  });
 
-  if (generateButton) {
-    generateButton.addEventListener('click', handleGenerateQRCode);
-  }
-  if (downloadButton) {
-    downloadButton.addEventListener('click', downloadQRCode);
-  }
-  if (qrTextInput) {
-    qrTextInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        handleGenerateQRCode();
-      }
-    });
-  }
-
-  // Icon upload
-  const iconUpload = document.getElementById('icon-upload') as HTMLInputElement;
-  const clearButton = document.getElementById('clear-icon');
-  if (iconUpload) {
-    iconUpload.addEventListener('change', handleIconUpload);
-  }
-  if (clearButton) {
-    clearButton.addEventListener('click', clearIcon);
-  }
-
-  // AI icon generation
-  const generateIconButton = document.getElementById('generate-icon');
-  const aiPromptInput = document.getElementById('ai-prompt') as HTMLInputElement;
-
-  if (generateIconButton) {
-    generateIconButton.addEventListener('click', generateAIIcon);
-  }
-
-  if (aiPromptInput) {
-    aiPromptInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        generateAIIcon();
-      }
-    });
-  }
-
-  // API key management
-  const apiKeyForm = document.getElementById('api-key-form');
-  const clearApiKeyButton = document.getElementById('clear-api-key');
-  if (apiKeyForm) {
-    apiKeyForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      saveApiKey();
-    });
-  }
-  if (clearApiKeyButton) {
-    clearApiKeyButton.addEventListener('click', clearApiKey);
-  }
-
-  // System prompt management
-  const savePromptButton = document.getElementById('save-prompt');
-  const resetPromptButton = document.getElementById('reset-prompt');
-  if (savePromptButton) {
-    savePromptButton.addEventListener('click', saveSystemPrompt);
-  }
-  if (resetPromptButton) {
-    resetPromptButton.addEventListener('click', resetSystemPrompt);
-  }
-
-  // Model management
-  const modelInput = document.getElementById('gemini-model') as HTMLInputElement;
-  if (modelInput) {
-    modelInput.addEventListener('change', (e) => {
-      const target = e.target as HTMLInputElement;
-      const model = target.value.trim();
-      if (model) {
-        localStorage.setItem(GEMINI_MODEL_STORAGE_KEY, model);
-      }
-    });
-  }
-
-  // Velocity-based snapping for sliders
-  // Fast drags snap to min, midpoint, or max; slow drags allow fine control
-  function setupSliderWithMidpointSnap(
-    slider: HTMLInputElement,
-    display: HTMLElement,
-    formatValue: (value: number) => string,
-    onValueChange?: (value: number) => void,
-  ): void {
-    let lastValue = Number.parseFloat(slider.value);
-    let lastTime = performance.now();
-
-    const min = Number.parseFloat(slider.min);
-    const max = Number.parseFloat(slider.max);
-    const midpoint = (min + max) / 2;
-    const range = max - min;
-    const snapPoints = [min, midpoint, max];
-
-    // Thresholds for snapping behavior
-    const velocityThreshold = 0.001; // Normalized velocity (fraction of range per ms)
-    const snapDistance = range * 0.1; // How close to snap point to trigger snap
-
-    slider.addEventListener('input', () => {
-      const currentValue = Number.parseFloat(slider.value);
-      const currentTime = performance.now();
-      const deltaTime = currentTime - lastTime;
-      const deltaValue = Math.abs(currentValue - lastValue);
-
-      // Calculate normalized velocity (as fraction of range per millisecond)
-      const velocity = deltaTime > 0 ? deltaValue / range / deltaTime : 0;
-
-      let finalValue = currentValue;
-
-      // If moving fast, check if near any snap point
-      if (velocity > velocityThreshold) {
-        for (const snapPoint of snapPoints) {
-          if (Math.abs(currentValue - snapPoint) < snapDistance) {
-            finalValue = snapPoint;
-            slider.value = String(snapPoint);
-            break;
-          }
-        }
-      }
-
-      display.textContent = formatValue(finalValue);
-      onValueChange?.(finalValue);
-
-      lastValue = finalValue;
-      lastTime = currentTime;
-    });
-  }
-
-  // Square size slider
-  const squareSizeSlider = document.getElementById('square-size') as HTMLInputElement;
-  const squareSizeDisplay = document.getElementById('square-size-display');
-  if (squareSizeSlider && squareSizeDisplay) {
-    setupSliderWithMidpointSnap(squareSizeSlider, squareSizeDisplay, (v) => `${v}px`);
-  }
-
-  // Finder rounding slider
-  const finderRoundingSlider = document.getElementById('finder-rounding') as HTMLInputElement;
-  const finderRoundingDisplay = document.getElementById('finder-rounding-display');
-  if (finderRoundingSlider && finderRoundingDisplay) {
-    setupSliderWithMidpointSnap(finderRoundingSlider, finderRoundingDisplay, (v) => `${v}%`);
-  }
-
-  // Module rounding slider
-  const moduleRoundingSlider = document.getElementById('module-rounding') as HTMLInputElement;
-  const moduleRoundingDisplay = document.getElementById('module-rounding-display');
-  if (moduleRoundingSlider && moduleRoundingDisplay) {
-    setupSliderWithMidpointSnap(moduleRoundingSlider, moduleRoundingDisplay, (v) => `${v}%`);
-  }
-
-  // Logo size slider
-  const logoSlider = document.getElementById('logo-size') as HTMLInputElement;
-  const logoDisplay = document.getElementById('logo-size-display');
-  if (logoSlider && logoDisplay) {
-    setupSliderWithMidpointSnap(
-      logoSlider,
-      logoDisplay,
-      (v) => `${v}%`,
-      (value) => {
-        // Add visual warning for large sizes
-        if (value > 25) {
-          logoDisplay.classList.add('text-amber-600');
-          logoDisplay.setAttribute('title', 'Large logos may affect QR code scanning');
-        } else {
-          logoDisplay.classList.remove('text-amber-600');
-          logoDisplay.removeAttribute('title');
-        }
-      },
-    );
-  }
-
-  // Border size slider
-  const borderSlider = document.getElementById('border-size') as HTMLInputElement;
-  const borderDisplay = document.getElementById('border-size-display');
-  if (borderSlider && borderDisplay) {
-    setupSliderWithMidpointSnap(borderSlider, borderDisplay, (v) => `${v}%`);
-  }
-
-  // Transparent background checkbox
-  const transparentCheckbox = document.getElementById('transparent-bg') as HTMLInputElement;
-  const borderControl = document.getElementById('border-size-control');
-  if (transparentCheckbox && borderControl) {
-    transparentCheckbox.addEventListener('change', (e) => {
-      const target = e.target as HTMLInputElement;
-      if (target.checked) {
-        borderControl.classList.add('opacity-50', 'pointer-events-none');
-      } else {
-        borderControl.classList.remove('opacity-50', 'pointer-events-none');
-      }
-    });
-  }
-
-  // Rounded corners checkbox
-  const roundedCheckbox = document.getElementById('logo-rounded') as HTMLInputElement;
-  const cornerRadiusControl = document.getElementById('corner-radius-control');
-  if (roundedCheckbox && cornerRadiusControl) {
-    roundedCheckbox.addEventListener('change', (e) => {
-      const target = e.target as HTMLInputElement;
-      if (target.checked) {
-        cornerRadiusControl.classList.remove('opacity-50', 'pointer-events-none');
-      } else {
-        cornerRadiusControl.classList.add('opacity-50', 'pointer-events-none');
-      }
-    });
-  }
-
-  // Corner radius slider
-  const cornerRadiusSlider = document.getElementById('corner-radius') as HTMLInputElement;
-  const cornerRadiusDisplay = document.getElementById('corner-radius-display');
-  if (cornerRadiusSlider && cornerRadiusDisplay) {
-    setupSliderWithMidpointSnap(cornerRadiusSlider, cornerRadiusDisplay, (v) => `${v}%`);
+  activeButton.classList.add('active', 'bg-blue-600', 'text-white');
+  activeButton.classList.remove('bg-gray-100', 'text-gray-600');
+  const tabElement = findElement(`${targetTab}-tab`);
+  if (tabElement) {
+    tabElement.classList.add('active');
+    tabElement.classList.remove('hidden');
   }
 }
 
+function initializeEventListeners(): void {
+  const qrTextInput = requireInput('qr-text');
+  requireButton('generate-qr').addEventListener('click', handleGenerateQRCode);
+  requireButton('download-qr').addEventListener('click', handleDownloadQRCode);
+  qrTextInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleGenerateQRCode();
+    }
+  });
+
+  requireInput('icon-upload').addEventListener('change', handleIconUpload);
+  requireButton('clear-icon').addEventListener('click', clearIcon);
+
+  requireButton('generate-icon').addEventListener('click', generateAIIcon);
+  const aiPromptInput = requireInput('ai-prompt');
+  aiPromptInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      generateAIIcon();
+    }
+  });
+
+  const apiKeyForm = findElement('api-key-form');
+  apiKeyForm?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    saveApiKey();
+  });
+  requireButton('clear-api-key').addEventListener('click', clearApiKey);
+
+  requireButton('save-prompt').addEventListener('click', saveSystemPrompt);
+  requireButton('reset-prompt').addEventListener('click', resetSystemPrompt);
+
+  const modelInput = requireInput('gemini-model');
+  modelInput.addEventListener('change', () => {
+    const model = modelInput.value.trim();
+    if (model) {
+      localStorage.setItem(GEMINI_MODEL_STORAGE_KEY, model);
+    }
+  });
+
+  setupSliderWithMidpointSnap(
+    requireInput('square-size'),
+    QR_INPUT.squareSize,
+    'square-size-display',
+    (v) => `${v}px`,
+  );
+  setupSliderWithMidpointSnap(
+    requireInput('finder-rounding'),
+    QR_INPUT.finderRounding,
+    'finder-rounding-display',
+    (v) => `${v}%`,
+  );
+  setupSliderWithMidpointSnap(
+    requireInput('module-rounding'),
+    QR_INPUT.moduleRounding,
+    'module-rounding-display',
+    (v) => `${v}%`,
+  );
+
+  const logoDisplay = findElement('logo-size-display');
+  setupSliderWithMidpointSnap(
+    requireInput('logo-size'),
+    QR_INPUT.logoSize,
+    'logo-size-display',
+    (v) => `${v}%`,
+    (value) => {
+      if (!logoDisplay) return;
+      // Logos larger than ~25% of the QR start degrading scannability even with the
+      // error-correction-level-H the generator uses.
+      if (value > 25) {
+        logoDisplay.classList.add('text-amber-600');
+        logoDisplay.setAttribute('title', 'Large logos may affect QR code scanning');
+      } else {
+        logoDisplay.classList.remove('text-amber-600');
+        logoDisplay.removeAttribute('title');
+      }
+    },
+  );
+
+  setupSliderWithMidpointSnap(
+    requireInput('border-size'),
+    QR_INPUT.borderSize,
+    'border-size-display',
+    (v) => `${v}%`,
+  );
+  setupSliderWithMidpointSnap(
+    requireInput('corner-radius'),
+    QR_INPUT.cornerRadius,
+    'corner-radius-display',
+    (v) => `${v}%`,
+  );
+
+  const transparentCheckbox = requireInput('transparent-bg');
+  const borderControl = findElement('border-size-control');
+  transparentCheckbox.addEventListener('change', () => {
+    if (!borderControl) return;
+    if (transparentCheckbox.checked) {
+      borderControl.classList.add('opacity-50', 'pointer-events-none');
+    } else {
+      borderControl.classList.remove('opacity-50', 'pointer-events-none');
+    }
+  });
+
+  const roundedCheckbox = requireInput('logo-rounded');
+  const cornerRadiusControl = findElement('corner-radius-control');
+  roundedCheckbox.addEventListener('change', () => {
+    if (!cornerRadiusControl) return;
+    if (roundedCheckbox.checked) {
+      cornerRadiusControl.classList.remove('opacity-50', 'pointer-events-none');
+    } else {
+      cornerRadiusControl.classList.add('opacity-50', 'pointer-events-none');
+    }
+  });
+}
+
+// Velocity-based snapping for sliders: fast drags snap to min, midpoint, or max;
+// slow drags allow fine control. Without this, trying to land on a round value
+// like 50% while dragging fast is fiddly.
+function setupSliderWithMidpointSnap(
+  slider: HTMLInputElement,
+  range: { readonly min: number; readonly max: number; readonly default: number },
+  displayId: string,
+  formatValue: (value: number) => string,
+  onValueChange?: (value: number) => void,
+): void {
+  slider.min = String(range.min);
+  slider.max = String(range.max);
+  slider.value = String(range.default);
+
+  const display = findElement(displayId);
+  if (!display) return;
+  display.textContent = formatValue(range.default);
+
+  let lastValue = range.default;
+  let lastTime = performance.now();
+
+  const midpoint = (range.min + range.max) / 2;
+  const rangeWidth = range.max - range.min;
+  const snapPoints = [range.min, midpoint, range.max];
+
+  const velocityThreshold = 0.001;
+  const snapDistance = rangeWidth * 0.1;
+
+  slider.addEventListener('input', () => {
+    const currentValue = Number.parseFloat(slider.value);
+    const currentTime = performance.now();
+    const deltaTime = currentTime - lastTime;
+    const deltaValue = Math.abs(currentValue - lastValue);
+
+    const velocity = deltaTime > 0 ? deltaValue / rangeWidth / deltaTime : 0;
+
+    let finalValue = currentValue;
+
+    if (velocity > velocityThreshold) {
+      for (const snapPoint of snapPoints) {
+        if (Math.abs(currentValue - snapPoint) < snapDistance) {
+          finalValue = snapPoint;
+          slider.value = String(snapPoint);
+          break;
+        }
+      }
+    }
+
+    display.textContent = formatValue(finalValue);
+    onValueChange?.(finalValue);
+
+    lastValue = finalValue;
+    lastTime = currentTime;
+  });
+}
+
+function parseSliderInt(input: HTMLInputElement, fallback: number): number {
+  const parsed = Number.parseInt(input.value, 10);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function readIconRender(): IconRender | null {
+  if (!currentIcon) return null;
+
+  const logoSizeRatio = parseSliderInt(requireInput('logo-size'), QR_INPUT.logoSize.default) / 100;
+  const transparentBg = requireInput('transparent-bg').checked;
+  const borderSizePercent = parseSliderInt(
+    requireInput('border-size'),
+    QR_INPUT.borderSize.default,
+  );
+  const roundedCorners = requireInput('logo-rounded').checked;
+  const cornerRadiusPercent = parseSliderInt(
+    requireInput('corner-radius'),
+    QR_INPUT.cornerRadius.default,
+  );
+
+  return {
+    src: currentIcon,
+    sizeRatio: logoSizeRatio,
+    border: transparentBg ? { kind: 'none' } : { kind: 'opaque', sizePercent: borderSizePercent },
+    corners: roundedCorners
+      ? { kind: 'rounded', radiusPercent: cornerRadiusPercent }
+      : { kind: 'sharp' },
+  };
+}
+
+function readQRCodeFormConfig(): QRCodeFormConfig | null {
+  const text = requireInput('qr-text').value.trim();
+  if (!text) return null;
+
+  return {
+    text,
+    moduleSize: parseSliderInt(requireInput('square-size'), QR_INPUT.squareSize.default),
+    finderRoundingPercent: parseSliderInt(
+      requireInput('finder-rounding'),
+      QR_INPUT.finderRounding.default,
+    ),
+    moduleRoundingPercent: parseSliderInt(
+      requireInput('module-rounding'),
+      QR_INPUT.moduleRounding.default,
+    ),
+    icon: readIconRender(),
+  };
+}
+
 function handleIconUpload(event: Event): void {
-  const target = event.target as HTMLInputElement;
+  const target = event.target;
+  if (!(target instanceof HTMLInputElement)) return;
   const file = target.files?.[0];
   if (!file) return;
 
   const reader = new FileReader();
   reader.onload = (e) => {
-    if (e.target?.result) {
-      currentIcon = e.target.result as string;
-      displayIcon(currentIcon, 'upload-preview');
+    const result = e.target?.result;
+    if (typeof result === 'string') {
+      currentIcon = result;
+      displayIcon(result, 'upload-preview');
     }
   };
   reader.readAsDataURL(file);
 }
 
 function displayIcon(src: string, containerId: string): void {
-  const container = document.getElementById(containerId);
+  const container = findElement(containerId);
   if (container) {
     container.innerHTML = `<img src="${src}" alt="Icon preview" class="max-w-[100px] max-h-[100px] rounded-lg shadow-sm">`;
   }
@@ -309,21 +319,18 @@ function displayIcon(src: string, containerId: string): void {
 
 function clearIcon(): void {
   currentIcon = null;
-  const uploadPreview = document.getElementById('upload-preview');
-  const aiPreview = document.getElementById('ai-preview');
-  const iconUpload = document.getElementById('icon-upload') as HTMLInputElement;
+  const uploadPreview = findElement('upload-preview');
+  const aiPreview = findElement('ai-preview');
+  const iconUpload = requireInput('icon-upload');
 
   if (uploadPreview) uploadPreview.innerHTML = '';
   if (aiPreview) aiPreview.innerHTML = '';
-  if (iconUpload) iconUpload.value = '';
+  iconUpload.value = '';
 }
 
 async function handleGenerateQRCode(): Promise<void> {
-  const textInput = document.getElementById('qr-text') as HTMLInputElement;
-  const squareSizeInput = document.getElementById('square-size') as HTMLInputElement;
-
-  const text = textInput?.value.trim();
-  if (!text) {
+  const config = readQRCodeFormConfig();
+  if (!config) {
     showModal({
       type: 'warning',
       title: 'Input Required',
@@ -332,10 +339,24 @@ async function handleGenerateQRCode(): Promise<void> {
     return;
   }
 
-  const moduleSize = Number.parseInt(squareSizeInput?.value || DEFAULT_SQUARE_SIZE.toString(), 10);
+  const canvas = requireCanvas('qr-canvas');
+  const downloadButton = requireButton('download-qr');
+  const warningDiv = findElement('qr-warning');
 
   try {
-    await generateQRCode(text, moduleSize, currentIcon);
+    const validation = await generateQRCode(canvas, config);
+
+    if (warningDiv) {
+      if (validation?.kind === 'invalid') {
+        warningDiv.textContent = validation.error;
+        warningDiv.classList.remove('hidden');
+      } else {
+        warningDiv.classList.add('hidden');
+      }
+    }
+
+    canvas.classList.remove('hidden');
+    downloadButton.disabled = false;
   } catch (error) {
     showModal({
       type: 'error',
@@ -346,9 +367,13 @@ async function handleGenerateQRCode(): Promise<void> {
   }
 }
 
+function handleDownloadQRCode(): void {
+  downloadQRCode(requireCanvas('qr-canvas'));
+}
+
 async function generateAIIcon(): Promise<void> {
-  const promptInput = document.getElementById('ai-prompt') as HTMLInputElement;
-  const prompt = promptInput?.value.trim();
+  const promptInput = requireInput('ai-prompt');
+  const prompt = promptInput.value.trim();
 
   if (!prompt) {
     showModal({
@@ -369,15 +394,12 @@ async function generateAIIcon(): Promise<void> {
     return;
   }
 
-  // Check rate limit
   if (!checkRateLimit()) {
     updateRateLimitDisplay();
     return;
   }
 
-  const button = document.getElementById('generate-icon') as HTMLButtonElement;
-  if (!button) return;
-
+  const button = requireButton('generate-icon');
   button.disabled = true;
   button.innerHTML = '<span class="loading"></span> Generating...';
 
@@ -402,10 +424,8 @@ async function generateAIIcon(): Promise<void> {
   }
 }
 
-// API key management
 function saveApiKey(): void {
-  const apiKeyInput = document.getElementById('api-key') as HTMLInputElement;
-  const apiKey = apiKeyInput?.value.trim();
+  const apiKey = requireInput('api-key').value.trim();
 
   if (apiKey) {
     localStorage.setItem(API_KEY_STORAGE_KEY, apiKey);
@@ -420,22 +440,18 @@ function saveApiKey(): void {
 
 function loadApiKey(): void {
   const savedKey = localStorage.getItem(API_KEY_STORAGE_KEY) || '';
-  const apiKeyInput = document.getElementById('api-key') as HTMLInputElement;
+  const apiKeyInput = requireInput('api-key');
 
-  if (savedKey && apiKeyInput) {
+  if (savedKey) {
     apiKeyInput.value = savedKey;
   }
 
-  // Update UI based on API key availability
   updateApiKeyUI(!!savedKey);
 }
 
 function clearApiKey(): void {
   localStorage.removeItem(API_KEY_STORAGE_KEY);
-  const apiKeyInput = document.getElementById('api-key') as HTMLInputElement;
-  if (apiKeyInput) {
-    apiKeyInput.value = '';
-  }
+  requireInput('api-key').value = '';
   updateApiKeyUI(false);
   showModal({
     type: 'success',
@@ -445,9 +461,9 @@ function clearApiKey(): void {
 }
 
 function updateApiKeyUI(hasApiKey: boolean): void {
-  const generateTab = document.querySelector('[data-tab="generate"]') as HTMLButtonElement;
-  const generateButton = document.getElementById('generate-icon') as HTMLButtonElement;
-  const aiPromptInput = document.getElementById('ai-prompt') as HTMLInputElement;
+  const generateTab = document.querySelector<HTMLButtonElement>('[data-tab="generate"]');
+  const generateButton = requireButton('generate-icon');
+  const aiPromptInput = requireInput('ai-prompt');
 
   if (generateTab) {
     if (!hasApiKey) {
@@ -459,38 +475,26 @@ function updateApiKeyUI(hasApiKey: boolean): void {
     }
   }
 
-  if (generateButton) {
-    generateButton.disabled = !hasApiKey;
-    if (!hasApiKey) {
-      generateButton.setAttribute('title', 'API key required');
-    } else {
-      generateButton.removeAttribute('title');
-    }
+  generateButton.disabled = !hasApiKey;
+  if (!hasApiKey) {
+    generateButton.setAttribute('title', 'API key required');
+  } else {
+    generateButton.removeAttribute('title');
   }
 
-  if (aiPromptInput) {
-    aiPromptInput.disabled = !hasApiKey;
-    if (!hasApiKey) {
-      aiPromptInput.placeholder = 'API key required - Configure in settings below';
-    } else {
-      aiPromptInput.placeholder = 'Describe the icon you want...';
-    }
-  }
+  aiPromptInput.disabled = !hasApiKey;
+  aiPromptInput.placeholder = hasApiKey
+    ? 'Describe the icon you want...'
+    : 'API key required - Configure in settings below';
 }
 
-// System prompt management
 function loadSystemPrompt(): void {
   const savedPrompt = localStorage.getItem(GEMINI_PROMPT_STORAGE_KEY);
-  const promptTextarea = document.getElementById('system-prompt') as HTMLTextAreaElement;
-
-  if (promptTextarea) {
-    promptTextarea.value = savedPrompt || DEFAULT_GEMINI_PROMPT;
-  }
+  requireTextarea('system-prompt').value = savedPrompt || DEFAULT_GEMINI_PROMPT;
 }
 
 function saveSystemPrompt(): void {
-  const promptTextarea = document.getElementById('system-prompt') as HTMLTextAreaElement;
-  const prompt = promptTextarea?.value.trim();
+  const prompt = requireTextarea('system-prompt').value.trim();
 
   if (prompt) {
     localStorage.setItem(GEMINI_PROMPT_STORAGE_KEY, prompt);
@@ -504,11 +508,7 @@ function saveSystemPrompt(): void {
 
 function resetSystemPrompt(): void {
   localStorage.removeItem(GEMINI_PROMPT_STORAGE_KEY);
-  const promptTextarea = document.getElementById('system-prompt') as HTMLTextAreaElement;
-
-  if (promptTextarea) {
-    promptTextarea.value = DEFAULT_GEMINI_PROMPT;
-  }
+  requireTextarea('system-prompt').value = DEFAULT_GEMINI_PROMPT;
 
   showModal({
     type: 'success',
@@ -517,12 +517,7 @@ function resetSystemPrompt(): void {
   });
 }
 
-// Model management
 function loadModel(): void {
   const savedModel = localStorage.getItem(GEMINI_MODEL_STORAGE_KEY);
-  const modelInput = document.getElementById('gemini-model') as HTMLInputElement;
-
-  if (modelInput) {
-    modelInput.value = savedModel || 'gemini-2.5-flash';
-  }
+  requireInput('gemini-model').value = savedModel || DEFAULT_GEMINI_MODEL;
 }

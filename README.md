@@ -24,7 +24,7 @@ A modern, open-source QR code generator built with TypeScript and Tailwind CSS. 
 
 ## Live Demo
 
-Visit the live demo at: [https://kstonekuan.github.io/qr-gen](https://kstonekuan.github.io/qr-gen)
+Visit the live demo at: [https://qr.kingstonkuan.com/](https://qr.kingstonkuan.com/)
 
 ## Quick Start
 
@@ -146,10 +146,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Acknowledgments
 
 - [qrcode](https://github.com/soldair/node-qrcode) for QR code generation
-- [Google Gemini](https://deepmind.google/technologies/gemini/) for AI capabilities
+- [Google Gemini](https://deepmind.google/models/gemini/) for AI capabilities
 - [jsQR](https://github.com/cozmo/jsQR) for QR code validation
 - [Tailwind CSS](https://tailwindcss.com/) for styling
-- [Vite](https://vitejs.dev/) for build tooling
+- [Vite](https://vite.dev/) for build tooling
 
 ## Privacy
 

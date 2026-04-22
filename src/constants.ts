@@ -1,19 +1,26 @@
 // Rate limiting constants
 export const RATE_LIMIT_STORAGE_KEY = 'gemini_rate_limit';
-export const RATE_LIMIT_MAX = 60; // Max requests per hour
-export const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour in milliseconds
+export const RATE_LIMIT_MAX = 60;
+export const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000;
 
 // Storage keys
 export const API_KEY_STORAGE_KEY = 'gemini_api_key';
 export const GEMINI_PROMPT_STORAGE_KEY = 'gemini_system_prompt';
 export const GEMINI_MODEL_STORAGE_KEY = 'gemini_model';
 
-// UI constants
-export const MIN_SQUARE_SIZE = 6;
-export const MAX_SQUARE_SIZE = 14;
-export const DEFAULT_SQUARE_SIZE = 10;
+// QR input ranges + defaults — single source of truth for HTML and parsing fallbacks.
+export const QR_INPUT = {
+  squareSize: { min: 6, max: 14, default: 10 },
+  finderRounding: { min: 0, max: 50, default: 0 },
+  moduleRounding: { min: 0, max: 50, default: 0 },
+  logoSize: { min: 10, max: 30, default: 20 },
+  borderSize: { min: 0, max: 10, default: 5 },
+  cornerRadius: { min: 0, max: 50, default: 25 },
+} as const;
 
 // Gemini constants
+export const DEFAULT_GEMINI_MODEL = 'gemini-3-flash';
+
 export const DEFAULT_GEMINI_PROMPT = `You are an SVG icon designer. Given a user prompt, create a simple, minimalist SVG icon suitable for QR code centers.
 
 Return JSON with:

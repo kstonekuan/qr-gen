@@ -6,11 +6,15 @@ export interface ModalOptions {
   onConfirm?: () => void;
 }
 
-let currentModal: HTMLDivElement | null = null;
+type OpenModal = {
+  element: HTMLDivElement;
+  handleEscape: (event: KeyboardEvent) => void;
+};
+
+let openModal: OpenModal | null = null;
 
 export function showModal(options: ModalOptions): void {
-  // Remove any existing modal
-  if (currentModal) {
+  if (openModal) {
     closeModal();
   }
 
@@ -78,47 +82,41 @@ export function showModal(options: ModalOptions): void {
   `;
 
   document.body.appendChild(modal);
-  currentModal = modal;
 
-  // Add event listeners
   const confirmButton = modal.querySelector('.modal-confirm');
   if (confirmButton) {
     confirmButton.addEventListener('click', () => {
-      if (options.onConfirm) {
-        options.onConfirm();
-      }
+      options.onConfirm?.();
       closeModal();
     });
   }
 
-  // Close on backdrop click
   modal.addEventListener('click', (e) => {
     if (e.target === modal) {
       closeModal();
     }
   });
 
-  // Close on Escape key
-  const handleEscape = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
+  const handleEscape = (event: KeyboardEvent): void => {
+    if (event.key === 'Escape') {
       closeModal();
     }
   };
   document.addEventListener('keydown', handleEscape);
-  modal.setAttribute('data-escape-handler', 'true');
+
+  openModal = { element: modal, handleEscape };
 }
 
 export function closeModal(): void {
-  if (currentModal) {
-    currentModal.classList.add('animate-fade-out');
-    setTimeout(() => {
-      if (currentModal) {
-        if (currentModal.getAttribute('data-escape-handler')) {
-          document.removeEventListener('keydown', closeModal);
-        }
-        currentModal.remove();
-        currentModal = null;
-      }
-    }, 200);
-  }
+  if (!openModal) return;
+
+  const { element, handleEscape } = openModal;
+  // Detach the listener immediately so repeat Escape presses during fade-out are no-ops.
+  document.removeEventListener('keydown', handleEscape);
+  openModal = null;
+
+  element.classList.add('animate-fade-out');
+  setTimeout(() => {
+    element.remove();
+  }, 200);
 }

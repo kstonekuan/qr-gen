@@ -1,36 +1,24 @@
 import jsQR from 'jsqr';
+import type { ValidationResult } from './types';
 
-export async function validateQRCode(canvas: HTMLCanvasElement): Promise<{
-  isValid: boolean;
-  decodedText?: string;
-  error?: string;
-}> {
+export async function validateQRCode(canvas: HTMLCanvasElement): Promise<ValidationResult> {
   try {
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (!ctx) {
-      return { isValid: false, error: 'Could not get canvas context' };
+      return { kind: 'invalid', error: 'Could not get canvas context' };
     }
 
-    // Get image data from the canvas
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-    // Try to decode the QR code
     const code = jsQR(imageData.data, imageData.width, imageData.height);
 
     if (code) {
-      return {
-        isValid: true,
-        decodedText: code.data,
-      };
+      return { kind: 'valid', decodedText: code.data };
     }
     return {
-      isValid: false,
+      kind: 'invalid',
       error: 'QR code could not be read. Try reducing logo size or enabling the border.',
     };
-  } catch (_error) {
-    return {
-      isValid: false,
-      error: 'Error validating QR code',
-    };
+  } catch {
+    return { kind: 'invalid', error: 'Error validating QR code' };
   }
 }

@@ -8,18 +8,18 @@
 
     <!-- Open Graph / Link Preview -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://kstonekuan.github.io/qr-gen/">
+    <meta property="og:url" content="https://qr.kingstonkuan.com/">
     <meta property="og:title" content="QR Code Generator with AI Icons">
     <meta property="og:description"
         content="Create custom QR codes with uploaded icons or AI-generated icons using Google's Gemini API">
-    <meta property="og:image" content="https://kstonekuan.github.io/qr-gen/preview.png">
+    <meta property="og:image" content="https://qr.kingstonkuan.com/preview.png">
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="QR Code Generator with AI Icons">
     <meta name="twitter:description"
         content="Create custom QR codes with uploaded icons or AI-generated icons using Google's Gemini API">
-    <meta name="twitter:image" content="https://kstonekuan.github.io/qr-gen/preview.png">
+    <meta name="twitter:image" content="https://qr.kingstonkuan.com/preview.png">
 
     <link rel="icon" type="image/svg+xml" href="./favicon.svg">
     <link rel="alternate icon" href="./favicon.png">
@@ -56,7 +56,7 @@
                 <label for="square-size" class="label">Square Size</label>
                 <div class="flex items-center gap-4">
                     <div class="slider-with-midpoint">
-                        <input type="range" id="square-size" min="6" max="14" value="10" class="range-slider">
+                        <input type="range" id="square-size" class="range-slider">
                         <span class="snap-marker-end"></span>
                     </div>
                     <span id="square-size-display" class="value-display">10px</span>
@@ -69,7 +69,7 @@
                 <label for="finder-rounding" class="label">Finder Pattern Rounding</label>
                 <div class="flex items-center gap-4">
                     <div class="slider-with-midpoint">
-                        <input type="range" id="finder-rounding" min="0" max="50" value="0" class="range-slider">
+                        <input type="range" id="finder-rounding" class="range-slider">
                         <span class="snap-marker-end"></span>
                     </div>
                     <span id="finder-rounding-display" class="value-display">0%</span>
@@ -82,7 +82,7 @@
                 <label for="module-rounding" class="label">Module Rounding</label>
                 <div class="flex items-center gap-4">
                     <div class="slider-with-midpoint">
-                        <input type="range" id="module-rounding" min="0" max="50" value="0" class="range-slider">
+                        <input type="range" id="module-rounding" class="range-slider">
                         <span class="snap-marker-end"></span>
                     </div>
                     <span id="module-rounding-display" class="value-display">0%</span>
@@ -148,7 +148,7 @@
                             <label for="logo-size" class="label">Logo Size</label>
                             <div class="flex items-center gap-4">
                                 <div class="slider-with-midpoint">
-                                    <input type="range" id="logo-size" min="10" max="30" value="20" class="range-slider">
+                                    <input type="range" id="logo-size" class="range-slider">
                                     <span class="snap-marker-end"></span>
                                 </div>
                                 <span id="logo-size-display" class="value-display">20%</span>
@@ -160,7 +160,7 @@
                             <label for="border-size" class="label">Border Size</label>
                             <div class="flex items-center gap-4">
                                 <div class="slider-with-midpoint">
-                                    <input type="range" id="border-size" min="0" max="10" value="5" step="1" class="range-slider">
+                                    <input type="range" id="border-size" step="1" class="range-slider">
                                     <span class="snap-marker-end"></span>
                                 </div>
                                 <span id="border-size-display" class="value-display">5%</span>
@@ -176,7 +176,7 @@
                             <label for="corner-radius" class="label">Corner Radius</label>
                             <div class="flex items-center gap-4">
                                 <div class="slider-with-midpoint">
-                                    <input type="range" id="corner-radius" min="0" max="50" value="25" step="1" class="range-slider">
+                                    <input type="range" id="corner-radius" step="1" class="range-slider">
                                     <span class="snap-marker-end"></span>
                                 </div>
                                 <span id="corner-radius-display" class="value-display">25%</span>
@@ -231,8 +231,7 @@
 
                 <div class="mb-6">
                     <label for="gemini-model" class="label">Model</label>
-                    <input type="text" id="gemini-model" placeholder="gemini-3-flash" value="gemini-3-flash"
-                        class="input-field">
+                    <input type="text" id="gemini-model" placeholder="gemini-3-flash" class="input-field">
                     <p class="hint mt-2">
                         See <a href="https://ai.google.dev/gemini-api/docs/models" target="_blank">available models</a>
                         <br>
